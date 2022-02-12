@@ -5,7 +5,7 @@ import kotlin.random.nextInt
 import kotlin.system.exitProcess
 
 val field = MutableList(9){MutableList(9){"."} }
-var fieldFalse = MutableList(9){MutableList(9){"."} }
+val fieldFalse = MutableList(9){MutableList(9){"."} }
 val listMines = mutableListOf<String>()
 
 var amount = 0
@@ -158,8 +158,9 @@ class Game() {
                 printField(fieldFalse)
             }
             field[x][y] =="." -> {
-                fieldFalse[x][y] = "/"
-                checkAround(x, y)
+             //   fieldFalse[x][y] = "/"
+             //   checkAround(x, y)
+                openEmpty(x, y)
             }
             else -> checkAround(x, y)
             }
@@ -167,7 +168,8 @@ class Game() {
 
     private fun checkAround(x: Int, y: Int) {
         val listAround = mutableListOf<String>()
-      //  if ((x-1 != -1) && (x+1 != 9) && (y-1 != -1) && (y+1 != 9)){
+        val listToEmpty = mutableListOf<String>()
+        listAround.clear()
             listAround.add("${x-1},${y+1}")
             listAround.add("${x-1},${y}")
             listAround.add("${x-1},${y-1}")
@@ -176,27 +178,46 @@ class Game() {
             listAround.add("${x+1},${y}")
             listAround.add("${x+1},${y+1}")
             listAround.add("${x},${y+1}")
-
         listAround.removeIf { it.split(",").contains("-1") }
         listAround.removeIf { it.split(",").contains("9") }
-     //   println(listAround)
+      //  listAround.removeIf { it.toString() == "/" }
 
-            for (i in listAround.indices){
-                var (r,c) = listAround[i].split(",")
-                if (field.isDigit(r.toInt(), c.toInt())) {
-                    fieldFalse[r.toInt()][c.toInt()] = field[r.toInt()][c.toInt()]
-                }
-                if (field[r.toInt()][c.toInt()] == ".") {
-                    fieldFalse[r.toInt()][c.toInt()] = "/"
+       println(listAround)
 
-          //!!!!          checkAround(r.toInt(), c.toInt())
+        for (i in listAround.indices) {
+            var (r, c) = listAround[i].split(",")
 
-                }
+            if (field.isDigit(r.toInt(), c.toInt())) {
+                fieldFalse[r.toInt()][c.toInt()] = field[r.toInt()][c.toInt()]
+            }
+            if (field[r.toInt()][c.toInt()] == ".") {
+                // fieldFalse[r.toInt()][c.toInt()] = "/"
+                    openEmpty(x,y)
 
-
-/////////////// палку ставить надо на пустую
+            }
         }
+
         printField(fieldFalse)
+    }
+
+    private fun openEmpty( x: Int, y: Int) {
+
+
+        if ( x>=9 || y>=9 || x <0 || y <0) return
+        if (field.isDigit(x, y)) {
+            fieldFalse[x][y] = field[x][y]
+            return
+        }
+        if (fieldFalse[x][y] == "/") return
+        ///
+         fieldFalse[x][y] = "/"
+        openEmpty(x+1,y)
+        openEmpty(x-1, y)
+        openEmpty(x, y+1)
+        openEmpty(x, y-1)
+        printField(fieldFalse)
+
+
     }
 
     private fun typeMine(x: Int, y: Int) {
@@ -220,6 +241,7 @@ fun MutableList<MutableList<String>>.isMine(row: Int, col: Int): Boolean {
 fun MutableList<MutableList<String>>.isDigit(row: Int, col: Int): Boolean{
        // return Regex("\\d+").matches(this[row][col])
        return this[row][col] != "X" && this[row][col] != "." && this[row][col] != "*"
+            //   && this[row][col] != "/"
 }
 
 fun MutableList<MutableList<String>>.cellToDigit(row: Int, col: Int) {
